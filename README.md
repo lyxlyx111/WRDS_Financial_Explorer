@@ -1,16 +1,16 @@
-\# WRDS Financial Explorer
+\ WRDS Financial Explorer
 
-\## ACC102 Mini Assignment - Track 4 (Interactive Data Analysis Tool)
+\ ACC102 Mini Assignment - Track 4 (Interactive Data Analysis Tool)
 
 
 
-\## 1. Problem \& User
+\ 1. Problem \& User
 
 People often struggle with the acquisition of reliable financial data. For instance, manually obtaining data from WRDS takes too much time, and manually calculating multiple financial indicators is prone to errors. This product aims to solve such problems. It is an interactive financial data query and analysis platform. It can obtain real-time financial data of a company from WRDS through queries and fully automate the work of financial indicator calculation and chart analysis, thereby liberating users' hands and allowing them to focus on the judgment and insight of the data. The target users mainly include business students, junior financial analysts, and individual investors.
 
 
 
-\## 2. Data
+\ 2. Data
 
 \- \*\*Source\*\*: WRDS Compustat Fundamental Annual Database
 
