@@ -53,7 +53,7 @@ The platform is built entirely with Python and implements a complete end-to-end 
 
 ## 6. Live Demo
 You can access the deployed application here:  
-(https://https://wrdsfinancialexplorer-juuqh5nuvw9zwbr9appy4kx.streamlit.app/)
+(https://wrdsfinancialexplorer-juuqh5nuvw9zwbr9appy4kx.streamlit.app/)
 
 ---
 
