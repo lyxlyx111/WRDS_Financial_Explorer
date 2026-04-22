@@ -53,7 +53,7 @@ The platform is built entirely with Python and implements a complete end-to-end 
 
 ## 6. Live Demo
 You can access the deployed application here:  
-(https://curly-barnacle-v6x45wpxj7w6fjv7-8501.app.github.dev/)
+(https://https://wrdsfinancialexplorer-juuqh5nuvw9zwbr9appy4kx.streamlit.app/)
 
 ---
 
