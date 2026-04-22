@@ -54,7 +54,7 @@ The platform is built entirely with Python and implements a complete end-to-end 
 ## 6. Live Demo
 You can access the deployed application here:  
 (https://wrdsfinancialexplorer-juuqh5nuvw9zwbr9appy4kx.streamlit.app/)
-
+(Due to the issue where the server IP of the third-party platform has been restricted by WRDS, it is no longer possible to log in using the WRDS account when accessing the program from this website. Please use your personal or school IP and follow the instructions in the code to access it.)
 ---
 
 ## 7. Limitations & Future Improvements
