@@ -1,6 +1,6 @@
 
 # WRDS Financial Explorer
-**ACC102 Mini Assignment - Track 4 (Interactive Data Analysis Tool)**
+**ACC102 Mini Assignment - Interactive Data Analysis Tool**
 
 ---
 
