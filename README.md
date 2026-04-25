@@ -14,9 +14,9 @@ The target users mainly include business students, junior financial analysts, an
 ---
 
 ## 2. Data
-- **Source**: WRDS Compustat Fundamental Annual Database
+- **Source**: WRDS Compustat North American Fundamental Annual Database
 - **Access Date**: April 17, 2026
-- **Coverage**: Over 90,000 public companies worldwide
+- **Coverage**: Over 24,000 public companies in North American
 - **Time Range**: 2014-2024 (11 years of standardized historical data)
 - **Key Variables**: Revenue, Net Income, Total Assets, Total Equity, Current Assets, Current Liabilities, Long-term Debt, Retained Earnings, Working Capital, SIC Industry Code
 
