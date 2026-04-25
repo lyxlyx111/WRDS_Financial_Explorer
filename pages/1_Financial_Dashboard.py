@@ -174,7 +174,6 @@ if keyword:
                 try:
                     start_year, end_year = year_range
                     
-                    # 修复：连接company表获取sic代码
                     query = """
                         SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic,
                                f.revt, f.ni, f.gp, f.at, f.ceq, f.act, f.lct, f.dltt, f.dlc
