@@ -64,11 +64,11 @@ Please use your personal or school IP and follow the instructions in the code to
 ## 7. Limitations & Future Improvements
 
 ### Limitations
-1. Currently only supports annual financial data
-2. The forecast model is based on simple linear regression
-3. Only supports 2-digit SIC industry grouping
+1. Currently only supports WRDS account to access the data
+2. The dataset only covers companies in North America and is unable to support analysis of global enterprises
+3. The Altman Z-Score model used here was originally designed for manufacturing enterprises with limited accuracy for service industries and technology companies
 
 ### Future Improvements
-1. Add quarterly data support
-2. Implement ARIMA time series forecasting
-3. Integrate 4-digit SIC industry classification system
+1. Enhance support for public data sources (such as Yahoo Finance) and lower the usage threshold
+2. Expand the data set to cover global enterprises
+3. Incorporate the industry-adjusted Z-Score model to enhance the accuracy of risk analysis for different industries
