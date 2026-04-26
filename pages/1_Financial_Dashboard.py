@@ -3,16 +3,13 @@ import pandas as pd
 import plotly.express as px
 import warnings
 warnings.filterwarnings("ignore")
-
 st.set_page_config(page_title="Financial Dashboard | WRDS Financial Explorer", layout="wide")
-
 col1, col2 = st.columns([0.1, 0.9])
 with col1:
     if st.button("🏠 Home", use_container_width=True):
         st.switch_page("Home.py")
 with col2:
     st.title("📊 Financial Dashboard")
-
 st.markdown("""
 <style>
     .main {
@@ -53,16 +50,12 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
 st.markdown("### 20+ Core Financial Indicators | WRDS Live Data | Industry Benchmark")
 st.divider()
-
 if not st.session_state.get("is_authenticated", False) or not st.session_state.get("wrds_conn"):
     st.error("🔐 Authentication Required: Please log in via Home Page")
     st.stop()
-
 conn = st.session_state["wrds_conn"]
-
 if "dashboard_data" not in st.session_state:
     st.session_state["dashboard_data"] = None
 if "selected_company" not in st.session_state:
@@ -71,7 +64,6 @@ if "search_results" not in st.session_state:
     st.session_state["search_results"] = None
 if "industry_data" not in st.session_state:
     st.session_state["industry_data"] = None
-
 col_search, col_year, col_refresh = st.columns([3, 2, 1])
 with col_search:
     keyword = st.text_input(
@@ -88,7 +80,6 @@ with col_refresh:
         st.session_state["search_results"] = None
         st.session_state["industry_data"] = None
         st.rerun()
-
 indicator_desc = {
     "Revenue": "Total annual revenue from sales (Million USD)",
     "Net Income": "Profit after all expenses and taxes (Million USD)",
@@ -105,7 +96,6 @@ indicator_desc = {
     "Revenue Growth": "Year-over-year revenue growth rate (%)",
     "Net Income Growth": "Year-over-year net income growth rate (%)"
 }
-
 if keyword:
     if st.session_state["search_results"] is None or st.session_state.get("last_keyword") != keyword:
         with st.spinner("Searching WRDS Compustat Database..."):
@@ -119,14 +109,7 @@ if keyword:
                 gvkey_conditions = " OR ".join([f"gvkey = %s" for _ in gvkey_candidates])
                 params = tuple([f"%{keyword}%", f"%{keyword}%"] + gvkey_candidates + [start_year, end_year])
                 
-                query = f"""
-                    SELECT DISTINCT gvkey, conm, tic
-                    FROM comp.funda
-                    WHERE (conm ILIKE %s OR tic ILIKE %s OR {gvkey_conditions})
-                    AND fyear BETWEEN %s AND %s
-                    AND revt > 0
-                    ORDER BY conm
-                """
+                query = f"SELECT DISTINCT gvkey, conm, tic FROM comp.funda WHERE (conm ILIKE %s OR tic ILIKE %s OR {gvkey_conditions}) AND fyear BETWEEN %s AND %s AND revt > 0 ORDER BY conm"
                 
                 search_results = conn.raw_sql(query, params=params)
                 
@@ -174,16 +157,7 @@ if keyword:
                 try:
                     start_year, end_year = year_range
                     
-                    query = """
-                        SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic,
-                               f.revt, f.ni, f.gp, f.at, f.ceq, f.act, f.lct, f.dltt, f.dlc
-                        FROM comp.funda f
-                        JOIN comp.company c ON f.gvkey = c.gvkey
-                        WHERE f.gvkey = %s
-                        AND f.fyear BETWEEN %s AND %s
-                        AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0
-                        ORDER BY f.fyear
-                    """
+                    query = "SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic, f.revt, f.ni, f.gp, f.at, f.ceq, f.act, f.lct, f.dltt, f.dlc FROM comp.funda f JOIN comp.company c ON f.gvkey = c.gvkey WHERE f.gvkey = %s AND f.fyear BETWEEN %s AND %s AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 ORDER BY f.fyear"
                     
                     df = conn.raw_sql(
                         query,
@@ -231,25 +205,7 @@ if keyword:
                     
                     industry_df = pd.DataFrame()
                     if industry_sic:
-                        industry_query = """
-                            SELECT fyear,
-                                   AVG(revt) as industry_revenue,
-                                   AVG(ni) as industry_net_income,
-                                   AVG(gp/revt*100) as industry_gross_margin,
-                                   AVG(ni/revt*100) as industry_net_margin,
-                                   AVG(ni/ceq*100) as industry_roe,
-                                   AVG(ni/at*100) as industry_roa,
-                                   AVG(act/lct) as industry_current_ratio,
-                                   AVG((dltt+dlc)/ceq) as industry_debt_to_equity,
-                                   AVG(revt/at) as industry_asset_turnover
-                            FROM comp.funda f
-                            JOIN comp.company c ON f.gvkey = c.gvkey
-                            WHERE LEFT(c.sic, 2) = %s
-                            AND f.fyear BETWEEN %s AND %s
-                            AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0
-                            GROUP BY fyear
-                            ORDER BY fyear
-                        """
+                        industry_query = "SELECT fyear, AVG(revt) as industry_revenue, AVG(ni) as industry_net_income, AVG(gp/revt*100) as industry_gross_margin, AVG(ni/revt*100) as industry_net_margin, AVG(ni/ceq*100) as industry_roe, AVG(ni/at*100) as industry_roa, AVG(act/lct) as industry_current_ratio, AVG((dltt+dlc)/ceq) as industry_debt_to_equity, AVG(revt/at) as industry_asset_turnover FROM comp.funda f JOIN comp.company c ON f.gvkey = c.gvkey WHERE LEFT(c.sic, 2) = %s AND f.fyear BETWEEN %s AND %s AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 GROUP BY fyear ORDER BY fyear"
                         
                         industry_df = conn.raw_sql(
                             industry_query,
@@ -358,89 +314,68 @@ if keyword:
                     plot_df = df[["Year", selected_indicator, f"Industry {selected_indicator}"]].melt(
                         id_vars="Year", var_name="Type", value_name="Value"
                     )
-                    color_map = {selected_indicator: "#165DFF", f"Industry {selected_indicator}": "#FF7D00"}
+                    fig = px.line(plot_df, x="Year", y="Value", color="Type",
+                                title=f"{selected_indicator} Trend", markers=True,
+                                template="plotly_white")
+                    fig.update_traces(line=dict(width=2.5))
+                    st.plotly_chart(fig, use_container_width=True)
                 else:
-                    plot_df = df[["Year", selected_indicator]].melt(
-                        id_vars="Year", var_name="Type", value_name="Value"
-                    )
-                    color_map = {selected_indicator: "#165DFF"}
-                
-                fig = px.line(
-                    plot_df, x="Year", y="Value", color="Type",
-                    title=f"{company_name} {selected_indicator} Trend",
-                    markers=True,
-                    template="plotly_white",
-                    color_discrete_map=color_map
-                )
-                fig.update_layout(height=400)
-                fig.update_traces(line=dict(width=3))
-                st.plotly_chart(fig, use_container_width=True)
-                
-                st.info(f"**{selected_indicator}**: {indicator_desc[selected_indicator]}")
+                    plot_df = df[["Year", selected_indicator]]
+                    fig = px.line(plot_df, x="Year", y=selected_indicator,
+                                title=f"{selected_indicator} Trend", markers=True,
+                                template="plotly_white")
+                    fig.update_traces(line=dict(width=2.5))
+                    st.plotly_chart(fig, use_container_width=True)
             
             with tab2:
-                solvency_indicators = ["Current Ratio", "Debt to Equity", "Total Assets", "Total Equity"]
+                solvency_indicators = ["Total Assets", "Total Equity", "Long-term Debt", "Short-term Debt", "Debt to Equity", "Current Ratio"]
                 selected_indicator = st.selectbox(
                     "Select Indicator",
                     options=solvency_indicators,
                     index=0
                 )
                 
-                if selected_indicator in ["Current Ratio", "Debt to Equity"] and f"Industry {selected_indicator}" in df.columns and not df[f"Industry {selected_indicator}"].isna().all():
+                if f"Industry {selected_indicator}" in df.columns and not df[f"Industry {selected_indicator}"].isna().all():
                     plot_df = df[["Year", selected_indicator, f"Industry {selected_indicator}"]].melt(
                         id_vars="Year", var_name="Type", value_name="Value"
                     )
-                    color_map = {selected_indicator: "#165DFF", f"Industry {selected_indicator}": "#FF7D00"}
+                    fig = px.line(plot_df, x="Year", y="Value", color="Type",
+                                title=f"{selected_indicator} Trend", markers=True,
+                                template="plotly_white")
+                    fig.update_traces(line=dict(width=2.5))
+                    st.plotly_chart(fig, use_container_width=True)
                 else:
-                    plot_df = df[["Year", selected_indicator]].melt(
-                        id_vars="Year", var_name="Type", value_name="Value"
-                    )
-                    color_map = {selected_indicator: "#165DFF"}
-                
-                fig = px.line(
-                    plot_df, x="Year", y="Value", color="Type",
-                    title=f"{company_name} {selected_indicator} Trend",
-                    markers=True,
-                    template="plotly_white",
-                    color_discrete_map=color_map
-                )
-                fig.update_layout(height=400)
-                fig.update_traces(line=dict(width=3))
-                st.plotly_chart(fig, use_container_width=True)
-                
-                st.info(f"**{selected_indicator}**: {indicator_desc[selected_indicator]}")
+                    plot_df = df[["Year", selected_indicator]]
+                    fig = px.line(plot_df, x="Year", y=selected_indicator,
+                                title=f"{selected_indicator} Trend", markers=True,
+                                template="plotly_white")
+                    fig.update_traces(line=dict(width=2.5))
+                    st.plotly_chart(fig, use_container_width=True)
             
             with tab3:
-                operational_indicators = ["Asset Turnover", "Gross Profit", "Current Assets", "Current Liabilities"]
+                efficiency_indicators = ["Asset Turnover", "Revenue Growth", "Net Income Growth"]
                 selected_indicator = st.selectbox(
                     "Select Indicator",
-                    options=operational_indicators,
+                    options=efficiency_indicators,
                     index=0
                 )
                 
-                if selected_indicator == "Asset Turnover" and f"Industry {selected_indicator}" in df.columns and not df[f"Industry {selected_indicator}"].isna().all():
+                if f"Industry {selected_indicator}" in df.columns and not df[f"Industry {selected_indicator}"].isna().all():
                     plot_df = df[["Year", selected_indicator, f"Industry {selected_indicator}"]].melt(
                         id_vars="Year", var_name="Type", value_name="Value"
                     )
-                    color_map = {selected_indicator: "#165DFF", f"Industry {selected_indicator}": "#FF7D00"}
+                    fig = px.line(plot_df, x="Year", y="Value", color="Type",
+                                title=f"{selected_indicator} Trend", markers=True,
+                                template="plotly_white")
+                    fig.update_traces(line=dict(width=2.5))
+                    st.plotly_chart(fig, use_container_width=True)
                 else:
-                    plot_df = df[["Year", selected_indicator]].melt(
-                        id_vars="Year", var_name="Type", value_name="Value"
-                    )
-                    color_map = {selected_indicator: "#165DFF"}
-                
-                fig = px.line(
-                    plot_df, x="Year", y="Value", color="Type",
-                    title=f"{company_name} {selected_indicator} Trend",
-                    markers=True,
-                    template="plotly_white",
-                    color_discrete_map=color_map
-                )
-                fig.update_layout(height=400)
-                fig.update_traces(line=dict(width=3))
-                st.plotly_chart(fig, use_container_width=True)
-                
-                st.info(f"**{selected_indicator}**: {indicator_desc[selected_indicator]}")
+                    plot_df = df[["Year", selected_indicator]]
+                    fig = px.line(plot_df, x="Year", y=selected_indicator,
+                                title=f"{selected_indicator} Trend", markers=True,
+                                template="plotly_white")
+                    fig.update_traces(line=dict(width=2.5))
+                    st.plotly_chart(fig, use_container_width=True)
             
             with tab4:
                 growth_indicators = ["Revenue Growth", "Net Income Growth"]
@@ -450,64 +385,38 @@ if keyword:
                     index=0
                 )
                 
-                fig = px.line(
-                    df, x="Year", y=selected_indicator,
-                    title=f"{company_name} {selected_indicator} Trend",
-                    markers=True,
-                    template="plotly_white",
-                    color_discrete_sequence=["#165DFF"]
-                )
-                fig.update_layout(height=400)
-                fig.update_traces(line=dict(width=3))
+                plot_df = df[["Year", selected_indicator]]
+                fig = px.bar(plot_df, x="Year", y=selected_indicator,
+                            title=f"{selected_indicator} Year-over-Year",
+                            template="plotly_white", color=selected_indicator,
+                            color_continuous_scale=["red", "yellow", "green"])
+                fig.update_layout(showlegend=False)
                 st.plotly_chart(fig, use_container_width=True)
-                
-                st.info(f"**{selected_indicator}**: {indicator_desc[selected_indicator]}")
             
             st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.subheader("📋 Complete Financial Dataset")
-            
+            st.subheader("📋 Full Financial Data Table")
             display_df = df.copy()
+            for col in ["Revenue", "Net Income", "Gross Profit", "Total Assets", "Total Equity"]:
+                display_df[col] = display_df[col].apply(lambda x: f"${x:,.0f}M" if not pd.isna(x) else "N/A")
+            for col in ["Gross Margin", "Net Margin", "ROE", "ROA", "Revenue Growth", "Net Income Growth"]:
+                display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}%" if not pd.isna(x) else "N/A")
+            for col in ["Current Ratio", "Debt to Equity", "Asset Turnover"]:
+                display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}x" if not pd.isna(x) else "N/A")
             
-            for col in ["Revenue", "Net Income", "Gross Profit", "Total Assets", "Total Equity", 
-                       "Current Assets", "Current Liabilities", "Long-term Debt", "Short-term Debt",
-                       "Industry Revenue", "Industry Net Income"]:
-                if col in display_df.columns:
-                    display_df[col] = display_df[col].apply(lambda x: f"${x:,.0f}M" if not pd.isna(x) else "N/A")
-            
-            for col in ["Gross Margin", "Net Margin", "ROE", "ROA", "Revenue Growth", "Net Income Growth",
-                       "Industry Gross Margin", "Industry Net Margin", "Industry ROE", "Industry ROA"]:
-                if col in display_df.columns:
-                    display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}%" if not pd.isna(x) else "N/A")
-            
-            for col in ["Current Ratio", "Debt to Equity", "Asset Turnover",
-                       "Industry Current Ratio", "Industry Debt to Equity", "Industry Asset Turnover"]:
-                if col in display_df.columns:
-                    display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}x" if not pd.isna(x) else "N/A")
-            
-            display_columns = [
-                "Year", "Revenue", "Net Income", "Gross Profit", "Total Assets", "Total Equity",
-                "Gross Margin", "Net Margin", "ROE", "ROA", "Current Ratio", "Debt to Equity"
-            ]
-            
-            st.dataframe(
-                display_df[display_columns],
-                use_container_width=True,
-                hide_index=True
-            )
+            st.dataframe(display_df[[
+                "Year", "Company", "Ticker", "Revenue", "Net Income", "Gross Profit",
+                "Total Assets", "Total Equity", "Gross Margin", "Net Margin", "ROE", "ROA",
+                "Current Ratio", "Debt to Equity", "Asset Turnover", "Revenue Growth", "Net Income Growth"
+            ]], use_container_width=True)
             
             st.download_button(
-                label="📥 Export Full Dataset as CSV",
+                label="📥 Export Full Data as CSV",
                 data=df.to_csv(index=False),
-                file_name=f"{company_name.replace(' ', '_')}_Financial_Data_with_Industry.csv",
+                file_name=f"{company_name.replace(' ', '_')}_Financial_Dashboard_Data.csv",
                 mime="text/csv"
             )
-            
-            with st.expander("📊 Descriptive Statistics"):
-                st.dataframe(df[list(indicator_desc.keys())].describe().round(2), use_container_width=True)
-            
             st.markdown('</div>', unsafe_allow_html=True)
-
 st.divider()
 st.markdown("© 2026 WRDS Financial Explorer | Data Source: WRDS Compustat Database | Version 1.0.0")
