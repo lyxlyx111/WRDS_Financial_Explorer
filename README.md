@@ -45,7 +45,7 @@ The platform is built entirely with Python and implements a complete end-to-end 
 
 ## 5. How to Run
 1. Clone this repository
-2. Install dependencies: pip install -r requirements.txt --only-binary :all:
+2. Install dependencies: pip install -r requirements.txt --force-reinstall (If you see dependency conflict warnings about watchdog or numba during installation, ignore them! These are from other old projects on your computer and do not affect this project.)
 3. Run the application: streamlit run Home.py
 4. Enter your valid WRDS username and password to authenticate
 5. Start exploring financial data for any public company in the database
