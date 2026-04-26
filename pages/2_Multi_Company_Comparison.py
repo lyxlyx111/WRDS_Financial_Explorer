@@ -4,9 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import warnings
 warnings.filterwarnings("ignore")
-
 st.set_page_config(page_title="Multi-Company Comparison | WRDS Financial Explorer", layout="wide")
-
 if "comparison_data" not in st.session_state:
     st.session_state["comparison_data"] = None
 if "companies_input" not in st.session_state:
@@ -15,14 +13,12 @@ if "year_range" not in st.session_state:
     st.session_state["year_range"] = (2019, 2024)
 if "industry_benchmark" not in st.session_state:
     st.session_state["industry_benchmark"] = None
-
 col1, col2 = st.columns([0.1, 0.9])
 with col1:
     if st.button("🏠 Home", use_container_width=True):
         st.switch_page("Home.py")
 with col2:
     st.title("🔄 Multi-Company Financial Comparison")
-
 st.markdown("""
 <style>
     .main {
@@ -48,16 +44,12 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
 st.markdown("### Compare up to 5 companies side by side | WRDS Live Data | Industry Benchmark")
 st.divider()
-
 if not st.session_state.get("is_authenticated", False) or not st.session_state.get("wrds_conn"):
     st.error("🔐 Authentication Required")
     st.stop()
-
 conn = st.session_state["wrds_conn"]
-
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.subheader("Enter Companies to Compare")
 st.info("Enter company names, tickers, or GVKEYs separated by commas (e.g., AAPL, MSFT, GOOGL)")
@@ -68,14 +60,12 @@ companies_input = st.text_input(
 )
 year_range = st.slider("Year Range", 2014, 2024, st.session_state["year_range"], step=1)
 force_industry_benchmark = st.checkbox("Force industry benchmark (use first company's industry)", value=False)
-
 if companies_input != st.session_state["companies_input"] or year_range != st.session_state["year_range"] or force_industry_benchmark != st.session_state.get("force_industry_benchmark", False):
     st.session_state["comparison_data"] = None
     st.session_state["companies_input"] = companies_input
     st.session_state["year_range"] = year_range
     st.session_state["industry_benchmark"] = None
     st.session_state["force_industry_benchmark"] = force_industry_benchmark
-
 if st.button("🔍 Start Comparison", use_container_width=True):
     if companies_input:
         companies = [c.strip() for c in companies_input.split(",")][:5]
@@ -91,15 +81,7 @@ if st.button("🔍 Start Comparison", use_container_width=True):
                 all_sics = []
                 
                 for company in companies:
-                    query = """
-                        SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic, f.revt, f.ni, f.gp, f.at, f.ceq, f.act, f.lct, f.dltt, f.dlc
-                        FROM comp.funda f
-                        JOIN comp.company c ON f.gvkey = c.gvkey
-                        WHERE (f.conm ILIKE %s OR f.tic ILIKE %s OR f.gvkey = %s)
-                        AND f.fyear BETWEEN %s AND %s
-                        AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0
-                        ORDER BY f.fyear
-                    """
+                    query = "SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic, f.revt, f.ni, f.gp, f.at, f.ceq, f.act, f.lct, f.dltt, f.dlc FROM comp.funda f JOIN comp.company c ON f.gvkey = c.gvkey WHERE (f.conm ILIKE %s OR f.tic ILIKE %s OR f.gvkey = %s) AND f.fyear BETWEEN %s AND %s AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 ORDER BY f.fyear"
                     
                     df = conn.raw_sql(
                         query,
@@ -142,24 +124,7 @@ if st.button("🔍 Start Comparison", use_container_width=True):
                 
                 industry_df = None
                 if common_sic:
-                    industry_query = """
-                        SELECT fyear,
-                               AVG(revt) as industry_revenue,
-                               AVG(ni) as industry_net_income,
-                               AVG(gp/revt*100) as industry_gross_margin,
-                               AVG(ni/revt*100) as industry_net_margin,
-                               AVG(ni/ceq*100) as industry_roe,
-                               AVG(ni/at*100) as industry_roa,
-                               AVG(act/lct) as industry_current_ratio,
-                               AVG((dltt+dlc)/ceq) as industry_debt_to_equity
-                        FROM comp.funda f
-                        JOIN comp.company c ON f.gvkey = c.gvkey
-                        WHERE LEFT(c.sic, 2) = %s
-                        AND f.fyear BETWEEN %s AND %s
-                        AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0
-                        GROUP BY fyear
-                        ORDER BY fyear
-                    """
+                    industry_query = "SELECT fyear, AVG(revt) as industry_revenue, AVG(ni) as industry_net_income, AVG(gp/revt*100) as industry_gross_margin, AVG(ni/revt*100) as industry_net_margin, AVG(ni/ceq*100) as industry_roe, AVG(ni/at*100) as industry_roa, AVG(act/lct) as industry_current_ratio, AVG((dltt+dlc)/ceq) as industry_debt_to_equity FROM comp.funda f JOIN comp.company c ON f.gvkey = c.gvkey WHERE LEFT(c.sic, 2) = %s AND f.fyear BETWEEN %s AND %s AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 GROUP BY fyear ORDER BY fyear"
                     
                     industry_df = conn.raw_sql(
                         industry_query,
@@ -185,7 +150,6 @@ if st.button("🔍 Start Comparison", use_container_width=True):
                 st.code(f"Error: {str(e)}", language="text")
     else:
         st.warning("⚠️ Please enter at least 2 companies to compare")
-
 if st.session_state["comparison_data"] is not None:
     combined_df = st.session_state["comparison_data"]
     industry_df = st.session_state["industry_benchmark"]
@@ -290,6 +254,5 @@ if st.session_state["comparison_data"] is not None:
     st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.markdown('</div>', unsafe_allow_html=True)
-
 st.divider()
 st.markdown("© 2026 WRDS Financial Explorer | Data Source: WRDS Compustat Database | Version 1.0.0")
