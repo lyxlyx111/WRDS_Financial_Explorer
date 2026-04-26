@@ -2,14 +2,12 @@ import streamlit as st
 import wrds
 import warnings
 warnings.filterwarnings("ignore")
-
 st.set_page_config(
     page_title="WRDS Financial Explorer",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 st.markdown("""
 <style>
     .main {
@@ -56,19 +54,15 @@ st.title("📊 WRDS Financial Explorer")
 st.markdown("### Corporate Financial Intelligence Platform")
 st.markdown("**Built for: Financial Analysts, Business Students, Institutional Investors**")
 st.markdown("**Powered by: WRDS Compustat Live Data**")
-
 session_defaults = {
     "wrds_conn": None,
     "is_authenticated": False,
     "username": None
 }
-
 for key, val in session_defaults.items():
     if key not in st.session_state:
         st.session_state[key] = val
-
 st.divider()
-
 if st.session_state["is_authenticated"] and st.session_state["wrds_conn"]:
     st.success(f"✅ WRDS Connected | User: {st.session_state['username']} | Live Data Active")
     st.divider()
@@ -105,7 +99,6 @@ if st.session_state["is_authenticated"] and st.session_state["wrds_conn"]:
         for key in session_defaults:
             st.session_state[key] = None
         st.rerun()
-
 else:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown("### 🔐 WRDS Authentication")
@@ -138,6 +131,5 @@ else:
                 st.info("Please check your credentials and ensure you have access to WRDS Compustat database.")
     
     st.markdown('</div>', unsafe_allow_html=True)
-
 st.divider()
 st.markdown("© 2026 WRDS Financial Explorer | Data Source: WRDS Compustat Database | Version 1.0.0")
