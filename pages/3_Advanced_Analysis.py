@@ -5,16 +5,13 @@ import plotly.graph_objects as go
 from scipy import stats
 import warnings
 warnings.filterwarnings("ignore")
-
 st.set_page_config(page_title="Advanced Analysis | WRDS Financial Explorer", layout="wide")
-
 col1, col2 = st.columns([0.1, 0.9])
 with col1:
     if st.button("🏠 Home", use_container_width=True):
         st.switch_page("Home.py")
 with col2:
     st.title("🔬 Advanced Financial Analysis")
-
 st.markdown("""
 <style>
     .main {
@@ -48,36 +45,23 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
 st.markdown("### DuPont Analysis, Z-Score Financial Health, and Time Series Forecast | Industry Benchmark")
 st.divider()
-
 if not st.session_state.get("is_authenticated", False) or not st.session_state.get("wrds_conn"):
     st.error("🔐 Authentication Required")
     st.stop()
-
 conn = st.session_state["wrds_conn"]
-
 keyword = st.text_input(
     "🔍 Search Company (Name / Ticker / GVKEY)",
     placeholder="e.g., Apple, AAPL, 16909"
 )
 year_range = st.slider("Year Range", 2014, 2024, (2015, 2024), step=1)
-
 if keyword:
     with st.spinner("Performing advanced financial analysis with industry benchmarks..."):
         try:
             start_year, end_year = year_range
             
-            query = """
-                SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic, f.revt, f.ni, f.at, f.ceq, f.act, f.lct, f.dltt, f.re, f.wcap
-                FROM comp.funda f
-                JOIN comp.company c ON f.gvkey = c.gvkey
-                WHERE (f.conm ILIKE %s OR f.tic ILIKE %s OR f.gvkey = %s)
-                AND f.fyear BETWEEN %s AND %s
-                AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0
-                ORDER BY f.fyear
-            """
+            query = "SELECT f.gvkey, f.conm, f.tic, f.fyear, c.sic, f.revt, f.ni, f.at, f.ceq, f.act, f.lct, f.dltt, f.re, f.wcap FROM comp.funda f JOIN comp.company c ON f.gvkey = c.gvkey WHERE (f.conm ILIKE %s OR f.tic ILIKE %s OR f.gvkey = %s) AND f.fyear BETWEEN %s AND %s AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 ORDER BY f.fyear"
             
             df = conn.raw_sql(
                 query,
@@ -121,27 +105,7 @@ if keyword:
             
             industry_df = pd.DataFrame()
             if industry_sic:
-                industry_query = """
-                    SELECT fyear,
-                           AVG(ni/revt*100) as industry_net_margin,
-                           AVG(revt/at) as industry_asset_turnover,
-                           AVG(at/ceq) as industry_equity_multiplier,
-                           AVG((ni/revt*100)*(revt/at)*(at/ceq)/100) as industry_roe,
-                           AVG(
-                               1.2*(wcap/at) +
-                               1.4*(re/at) +
-                               3.3*(ni/at) +
-                               0.6*(ceq/(dltt+lct)) +
-                               1.0*(revt/at)
-                           ) as industry_z_score
-                    FROM comp.funda f
-                    JOIN comp.company c ON f.gvkey = c.gvkey
-                    WHERE LEFT(c.sic, 2) = %s
-                    AND f.fyear BETWEEN %s AND %s
-                    AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 AND f.dltt + f.lct > 0
-                    GROUP BY fyear
-                    ORDER BY fyear
-                """
+                industry_query = "SELECT fyear, AVG(ni/revt*100) as industry_net_margin, AVG(revt/at) as industry_asset_turnover, AVG(at/ceq) as industry_equity_multiplier, AVG((ni/revt*100)*(revt/at)*(at/ceq)/100) as industry_roe, AVG(1.2*(wcap/at) + 1.4*(re/at) + 3.3*(ni/at) + 0.6*(ceq/(dltt+lct)) + 1.0*(revt/at)) as industry_z_score FROM comp.funda f JOIN comp.company c ON f.gvkey = c.gvkey WHERE LEFT(c.sic, 2) = %s AND f.fyear BETWEEN %s AND %s AND f.revt > 0 AND f.at > 0 AND f.ceq > 0 AND f.lct > 0 AND f.dltt + f.lct > 0 GROUP BY fyear ORDER BY fyear"
                 
                 industry_df = conn.raw_sql(
                     industry_query,
@@ -302,6 +266,5 @@ if keyword:
             st.error("❌ Advanced Analysis Failed")
             st.code(f"Error: {str(e)}", language="text")
             st.info("This may be due to missing data for some years. Try adjusting the year range.")
-
 st.divider()
 st.markdown("© 2026 WRDS Financial Explorer | Data Source: WRDS Compustat Database | Version 1.0.0")
